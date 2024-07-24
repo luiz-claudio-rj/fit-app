@@ -9,11 +9,11 @@ import React from "react";
 import { Pressable } from "react-native";
 import TabOneScreen from ".";
 import Profile from "./profile";
-import TabTwoScreen from "./two";
+import BodyProgressAndUpdate from "./BodyProgressAndUpdate";
 
 export type TabsNavigation = {
   index: undefined;
-  two: undefined;
+  bodyInfo: undefined;
   middle: undefined;
   four: undefined;
   five: undefined;
@@ -30,9 +30,9 @@ export default function TabLayout() {
       }}
     >
       <Tabs.Screen name="index" component={TabOneScreen} />
-      <Tabs.Screen name="two" component={TabTwoScreen} />
-      <Tabs.Screen name="middle" component={TabTwoScreen} />
-      <Tabs.Screen name="four" component={TabTwoScreen} />
+      <Tabs.Screen name="bodyInfo" component={BodyProgressAndUpdate} />
+      <Tabs.Screen name="middle" component={BodyProgressAndUpdate} />
+      <Tabs.Screen name="four" component={BodyProgressAndUpdate} />
       <Tabs.Screen name="five" component={Profile} />
     </Tabs.Navigator>
   );
@@ -52,7 +52,7 @@ const Icon = ({
   switch (name) {
     case "index":
       return <MaterialIcons size={size} name="home" color={color} />;
-    case "two":
+    case "bodyInfo":
       return <FontAwesome6 size={size} name="person-running" color={color} />;
     case "four":
       return <Ionicons size={size} name="restaurant" color={color} />;

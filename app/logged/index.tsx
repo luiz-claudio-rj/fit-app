@@ -146,7 +146,7 @@ export default function TabOneScreen() {
             </Text>
             <Pressable
               onPress={() => {
-                navigation.navigate("two");
+                navigation.navigate("bodyInfo");
               }}
               style={{
                 backgroundColor: Colors.white,

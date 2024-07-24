@@ -1,24 +1,19 @@
+import { useAuth } from "@/atoms/auth";
 import { Text } from "@/components/Themed";
+import Colors from "@/constants/Colors";
 import fonts from "@/constants/fonts";
-import React, { useMemo, useRef, useState } from "react";
+import React, { useState } from "react";
 import {
   Dimensions,
   Image,
   StyleSheet,
   TouchableOpacity,
-  TouchableWithoutFeedback,
   View,
 } from "react-native";
+import { Modal, Portal, TextInput } from "react-native-paper";
 
 const WelcomeImage = require("../../assets/images/welcome.jpg");
-import Colors from "@/constants/Colors";
-import {
-  BottomSheetModal,
-  BottomSheetView,
-  BottomSheetModalProvider,
-} from "@gorhom/bottom-sheet";
-import { Button, Modal, Portal, TextInput } from "react-native-paper";
-import {useAuth} from "@/atoms/auth";
+const Logo = require("../../assets/images/logo_white.png");
 
 const WIDTH = Dimensions.get("window").width;
 
@@ -35,7 +30,7 @@ const Welcome: React.FC = () => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  
+
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false);
 
@@ -77,9 +72,13 @@ const Welcome: React.FC = () => {
         style={{ width: WIDTH, position: "absolute", top: 0 }}
         resizeMode="cover"
       />
-      <Text style={styles.appName}>FitTrack</Text>
+      <Image
+        source={Logo}
+        style={{ width: 300, height: 200, marginBottom: 20 }}
+        resizeMode="contain"
+      />
       <Text style={styles.tagline}>
-        Transforme seu corpo, alcance seus objetivos com FitTrack.
+        Transforme seu corpo, alcance seus objetivos com Sampson.
       </Text>
       <View style={styles.starButtonContainer}>
         <TouchableOpacity
@@ -122,7 +121,7 @@ const Welcome: React.FC = () => {
               textAlign: "center",
             }}
           >
-           Bem vindo ao FitTrack
+            Bem vindo ao Sampson
           </Text>
 
           {openRegisterModal && (
@@ -172,32 +171,31 @@ const Welcome: React.FC = () => {
                 onPress={() => setPasswordVisible(!passwordVisible)}
               />
             }
-
           />
-          {
-            openRegisterModal && (
-              <TextInput
-                label="Confirme a senha"
-                value={confirmPassword}
-                onChangeText={setConfirmPassword}
-                secureTextEntry={!confirmPasswordVisible}
-                mode="outlined"
-                style={{
-                  backgroundColor: "white",
-                  color: "black",
-                }}
-                textColor="black"
-                outlineColor="black"
-                autoCapitalize="none"
-                right={
-                  <TextInput.Icon
-                    icon={confirmPasswordVisible ? "eye-off" : "eye"}
-                    onPress={() => setConfirmPasswordVisible(!confirmPasswordVisible)}
-                  />
-                }
-              />
-            )
-          }
+          {openRegisterModal && (
+            <TextInput
+              label="Confirme a senha"
+              value={confirmPassword}
+              onChangeText={setConfirmPassword}
+              secureTextEntry={!confirmPasswordVisible}
+              mode="outlined"
+              style={{
+                backgroundColor: "white",
+                color: "black",
+              }}
+              textColor="black"
+              outlineColor="black"
+              autoCapitalize="none"
+              right={
+                <TextInput.Icon
+                  icon={confirmPasswordVisible ? "eye-off" : "eye"}
+                  onPress={() =>
+                    setConfirmPasswordVisible(!confirmPasswordVisible)
+                  }
+                />
+              }
+            />
+          )}
           <TouchableOpacity
             style={{
               backgroundColor: Colors.primary,
@@ -208,7 +206,11 @@ const Welcome: React.FC = () => {
             onPress={handleLogin}
           >
             <Text style={{ color: "white", fontFamily: fonts.Inter_Semibold }}>
-              {loading ? "Carregando..." : openRegisterModal ? "Cadastrar" : "Entrar"}
+              {loading
+                ? "Carregando..."
+                : openRegisterModal
+                ? "Cadastrar"
+                : "Entrar"}
             </Text>
           </TouchableOpacity>
         </Modal>

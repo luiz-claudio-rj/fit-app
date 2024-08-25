@@ -4,4 +4,4 @@ export default {
   white: "#F5F5F5",
   blue: "#1646A1",
   darkGray: "#2F2B28",
-}
+} as const;

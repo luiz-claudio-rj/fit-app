@@ -5,23 +5,52 @@ import {
   BottomTabBarProps,
   createBottomTabNavigator,
 } from "@react-navigation/bottom-tabs";
+import { createStackNavigator } from "@react-navigation/stack";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import React from "react";
 import { Pressable } from "react-native";
 import TabOneScreen from ".";
-import Profile from "./profile";
 import BodyProgressAndUpdate from "./BodyProgressAndUpdate";
-
+import Profile from "./profile";
+import Workout, { Video } from "./workout";
+import WorkoutList from "./WorkoutList";
 export type TabsNavigation = {
   index: undefined;
   bodyInfo: undefined;
-  middle: undefined;
+  workoutList: undefined;
   four: undefined;
   five: undefined;
 };
 
+type StackWorkoutNavigation = {
+  workouts: undefined;
+  workout: { video: Video };
+  Tabs: undefined;
+};
+
+const Stack = createStackNavigator<StackWorkoutNavigation>();
+
 const Tabs = createBottomTabNavigator<TabsNavigation>();
 
+const queryClient = new QueryClient();
+
 export default function TabLayout() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <Stack.Navigator
+        screenOptions={{
+          headerShown: false,
+        }}
+      >
+        <Stack.Screen name="Tabs" component={TabsNavigation} />
+        <Stack.Screen name="workouts" component={WorkoutList} />
+        <Stack.Screen name="workout" component={Workout} />
+      </Stack.Navigator>
+    </QueryClientProvider>
+  );
+}
+
+const TabsNavigation = () => {
   return (
     <Tabs.Navigator
       tabBar={customTabbar}
@@ -31,12 +60,12 @@ export default function TabLayout() {
     >
       <Tabs.Screen name="index" component={TabOneScreen} />
       <Tabs.Screen name="bodyInfo" component={BodyProgressAndUpdate} />
-      <Tabs.Screen name="middle" component={BodyProgressAndUpdate} />
+      <Tabs.Screen name="workoutList" component={WorkoutList} />
       <Tabs.Screen name="four" component={BodyProgressAndUpdate} />
       <Tabs.Screen name="five" component={Profile} />
     </Tabs.Navigator>
   );
-}
+};
 
 const Icon = ({
   name,
@@ -83,7 +112,7 @@ const customTabbar = ({
       {state.routes.map((route, index) => {
         const isActive = state.index === index;
         const isDisabled = route.name === "four";
-        if (route.name === "middle") {
+        if (route.name === "workoutList") {
           return (
             <Pressable
               key={route.key}
@@ -96,6 +125,7 @@ const customTabbar = ({
                 borderRadius: 10,
                 top: -30,
               }}
+              onPress={() => navigation.navigate(route.name)}
             >
               <FontAwesome6 size={25} name="plus" color={Colors.white} />
             </Pressable>

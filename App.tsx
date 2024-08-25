@@ -83,7 +83,7 @@ function RootLayoutNav() {
         headerShown: false,
       }}
     >
-      {isAuthenticated && token ? (
+      {!!token ? (
         <Stack.Screen name="tabs" component={TabLayout} />
       ) : (
         <Stack.Screen name="login" component={Welcome} />

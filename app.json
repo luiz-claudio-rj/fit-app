@@ -13,13 +13,15 @@
       "backgroundColor": "#0F0F0F"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.imnotvirus.fitapp"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#0F0F0F"
-      }
+      },
+      "package": "com.imnotvirus.fitapp"
     },
     "web": {
       "bundler": "metro",

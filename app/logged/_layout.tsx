@@ -1,11 +1,14 @@
 import { View } from "@/components/Themed";
 import Colors from "@/constants/Colors";
-import { FontAwesome6, Ionicons, MaterialIcons } from "@expo/vector-icons";
+import { FontAwesome5, FontAwesome6, MaterialIcons } from "@expo/vector-icons";
 import {
   BottomTabBarProps,
   createBottomTabNavigator,
 } from "@react-navigation/bottom-tabs";
-import { createStackNavigator } from "@react-navigation/stack";
+import {
+  createStackNavigator,
+  StackNavigationProp,
+} from "@react-navigation/stack";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import React from "react";
 import { Pressable } from "react-native";
@@ -17,16 +20,21 @@ import WorkoutList from "./WorkoutList";
 export type TabsNavigation = {
   index: undefined;
   bodyInfo: undefined;
+  middle: undefined;
   workoutList: undefined;
   four: undefined;
   five: undefined;
 };
 
-type StackWorkoutNavigation = {
+export type StackWorkoutNavigation = {
   workouts: undefined;
   workout: { video: Video };
   Tabs: undefined;
 };
+
+export type LoggedNavigationProp = TabsNavigation & StackWorkoutNavigation;
+
+export type useNavigationProps = StackNavigationProp<LoggedNavigationProp>;
 
 const Stack = createStackNavigator<StackWorkoutNavigation>();
 
@@ -61,7 +69,6 @@ const TabsNavigation = () => {
       <Tabs.Screen name="index" component={TabOneScreen} />
       <Tabs.Screen name="bodyInfo" component={BodyProgressAndUpdate} />
       <Tabs.Screen name="workoutList" component={WorkoutList} />
-      <Tabs.Screen name="four" component={BodyProgressAndUpdate} />
       <Tabs.Screen name="five" component={Profile} />
     </Tabs.Navigator>
   );
@@ -83,8 +90,8 @@ const Icon = ({
       return <MaterialIcons size={size} name="home" color={color} />;
     case "bodyInfo":
       return <FontAwesome6 size={size} name="person-running" color={color} />;
-    case "four":
-      return <Ionicons size={size} name="restaurant" color={color} />;
+    case "workoutList":
+      return <FontAwesome5 size={size} name="dumbbell" color={color} />;
     case "five":
       return <MaterialIcons size={size} name="person" color={color} />;
     default:
@@ -111,31 +118,28 @@ const customTabbar = ({
     >
       {state.routes.map((route, index) => {
         const isActive = state.index === index;
-        const isDisabled = route.name === "four";
-        if (route.name === "workoutList") {
-          return (
-            <Pressable
-              key={route.key}
-              style={{
-                alignItems: "center",
-                backgroundColor: Colors.secondary,
-                width: 50,
-                height: 50,
-                justifyContent: "center",
-                borderRadius: 10,
-                top: -30,
-              }}
-              onPress={() => navigation.navigate(route.name)}
-            >
-              <FontAwesome6 size={25} name="plus" color={Colors.white} />
-            </Pressable>
-          );
-        }
+        // if (route.name === "middle") {
+        //   return (
+        //     <Pressable
+        //       key={route.key}
+        //       style={{
+        //         alignItems: "center",
+        //         backgroundColor: Colors.secondary,
+        //         width: 50,
+        //         height: 50,
+        //         justifyContent: "center",
+        //         borderRadius: 10,
+        //         top: -30,
+        //       }}
+        //     >
+        //       <FontAwesome6 size={25} name="plus" color={Colors.white} />
+        //     </Pressable>
+        //   );
+        // }
 
         return (
           <Pressable
             key={route.key}
-            disabled={isDisabled}
             onPress={() => navigation.navigate(route.name)}
             style={{
               alignItems: "center",
@@ -146,11 +150,7 @@ const customTabbar = ({
               borderRadius: 10,
             }}
           >
-            <Icon
-              name={route.name}
-              isActive={isActive}
-              isDisabled={isDisabled}
-            />
+            <Icon name={route.name} isActive={isActive} isDisabled={false} />
             {isActive && (
               <View
                 style={{

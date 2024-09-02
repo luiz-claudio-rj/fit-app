@@ -2,6 +2,7 @@ import { Dimensions, Image, Pressable, StyleSheet, View } from "react-native";
 
 import headerImage from "@/assets/images/header.png";
 import profilePicture from "@/assets/images/profile.png";
+import { useWorkoutsHistory } from "@/atoms/workoutsHistory";
 import { Text } from "@/components/Themed";
 import Colors from "@/constants/Colors";
 import fonts from "@/constants/fonts";
@@ -9,15 +10,21 @@ import { FontAwesome, FontAwesome6 } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale/pt-BR";
+import { LinearGradient } from "expo-linear-gradient";
 import { ScrollView } from "react-native-gesture-handler";
 import { Card } from "react-native-paper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useNavigationProps } from "./_layout";
 
 const width = Dimensions.get("window").width;
 
 export default function TabOneScreen() {
   const insets = useSafeAreaInsets();
-  const navigation = useNavigation();
+  const navigation = useNavigation<useNavigationProps>();
+
+  const lastsWorkouts = useWorkoutsHistory(
+    (state) => state.lastWorkoutsVideosWatched
+  );
   return (
     <ScrollView contentContainerStyle={[styles.container]}>
       <Image
@@ -249,50 +256,71 @@ export default function TabOneScreen() {
             marginBottom: 20,
           }}
         >
-          <Card
-            style={{
-              width: 200,
-              height: 200,
-              borderRadius: 20,
-              marginRight: 20,
-              padding: 20,
-            }}
-          >
-            <Text>Card 5</Text>
-          </Card>
-          <Card
-            style={{
-              width: 200,
-              height: 200,
-              borderRadius: 20,
-              marginRight: 20,
-              padding: 20,
-            }}
-          >
-            <Text>Card 2</Text>
-          </Card>
-          <Card
-            style={{
-              width: 200,
-              height: 200,
-              borderRadius: 20,
-              marginRight: 20,
-              padding: 20,
-            }}
-          >
-            <Text>Card 3</Text>
-          </Card>
-          <Card
-            style={{
-              width: 200,
-              height: 200,
-              borderRadius: 20,
-              marginRight: 20,
-              padding: 20,
-            }}
-          >
-            <Text>Card 4</Text>
-          </Card>
+          {lastsWorkouts.map((workout, index) => (
+            <Card
+              key={index}
+              style={{
+                width: 200,
+                height: 200,
+                borderRadius: 20,
+                marginRight: 20,
+                overflow: "hidden",
+
+                justifyContent: "space-between",
+                backgroundColor: Colors.secondary,
+              }}
+              onPress={() => {
+                navigation.navigate("workout", { video: workout.video });
+              }}
+            >
+              <LinearGradient
+                colors={["#000000", "#00000000"]}
+                style={{
+                  position: "absolute",
+                  width: 200,
+                  height: 200,
+                }}
+              />
+              <Image
+                source={{
+                  uri: workout.video.image,
+                }}
+                style={{
+                  zIndex: -1,
+                  width: 200,
+                  height: 200,
+                  position: "absolute",
+                }}
+              />
+              <View
+                style={{
+                  justifyContent: "space-between",
+                  padding: 20,
+                  width: "100%",
+                  height: "100%",
+                }}
+              >
+                <Text
+                  style={{
+                    color: "white",
+                    fontFamily: fonts.Inter_Bold,
+                    fontSize: 16,
+                  }}
+                >
+                  {workout.video.name}
+                </Text>
+                <Text
+                  style={{
+                    color: "white",
+                    fontFamily: fonts.Inter,
+                    fontSize: 12,
+                  }}
+                >
+                  {workout.watchedAt.toLocaleDateString()}
+                </Text>
+              </View>
+            </Card>
+          ))}
         </ScrollView>
       </View>
     </ScrollView>

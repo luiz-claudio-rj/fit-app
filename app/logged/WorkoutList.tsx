@@ -13,6 +13,7 @@ import {
   View,
 } from "react-native";
 import { FlatList } from "react-native-gesture-handler";
+import { useNavigationProps } from "./_layout";
 
 export interface Video {
   created_at: string;
@@ -25,17 +26,14 @@ export interface Video {
 
 export const getVideos = async (): Promise<Video[]> => {
   const { data } = await supabase.from("videos").select("*");
-  return data;
-};
 
-export type useNavigationProp = {
-  navigate: (screen: "workout", params: { video: Video }) => void;
+  return data || [];
 };
 
 const WorkoutList = () => {
   const { data } = useQuery({ queryKey: ["videos"], queryFn: getVideos });
 
-  const navigation = useNavigation<useNavigationProp>();
+  const navigation = useNavigation<useNavigationProps>();
 
   return (
     <View style={styles.container}>

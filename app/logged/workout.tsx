@@ -1,10 +1,11 @@
+import { useWorkoutsHistory } from "@/atoms/workoutsHistory";
 import { Text } from "@/components/Themed";
 import VideoPlayer from "@/components/VideoPlayer";
 import Colors from "@/constants/Colors";
 import fonts from "@/constants/fonts";
 import { useNavigation } from "@react-navigation/native";
 import { useQuery } from "@tanstack/react-query";
-import React from "react";
+import React, { useEffect } from "react";
 import {
   Dimensions,
   Image,
@@ -15,7 +16,7 @@ import {
   View,
 } from "react-native";
 import { FlatList } from "react-native-gesture-handler";
-import { useNavigationProp } from "./WorkoutList";
+import { useNavigationProps } from "./_layout";
 
 export interface Video {
   created_at: string;
@@ -34,8 +35,19 @@ interface Props {
 }
 const Workout = ({ route }: Props) => {
   const { data: videos } = useQuery<Video[]>({ queryKey: ["videos"] });
+  const setVideoHistory = useWorkoutsHistory(
+    (state) => state.addLastWorkoutVideo
+  );
+  const navigation = useNavigation<useNavigationProps>();
 
-  const navigation = useNavigation<useNavigationProp>();
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setVideoHistory(route.params.video);
+      console.log("video watched");
+    }, 3000);
+
+    return () => clearTimeout(timer);
+  }, [route.params.video]);
 
   return (
     <View style={styles.container}>

@@ -15,6 +15,7 @@ import { ScrollView } from "react-native-gesture-handler";
 import { Card } from "react-native-paper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useNavigationProps } from "./_layout";
+import { useAuth } from "@/atoms/auth";
 
 const width = Dimensions.get("window").width;
 
@@ -25,6 +26,7 @@ export default function TabOneScreen() {
   const lastsWorkouts = useWorkoutsHistory(
     (state) => state.lastWorkoutsVideosWatched
   );
+  const {profile} = useAuth();
   return (
     <ScrollView contentContainerStyle={[styles.container]}>
       <Image
@@ -102,7 +104,7 @@ export default function TabOneScreen() {
                 fontFamily: fonts.Inter_Bold,
               }}
             >
-              Olá, Nafissa
+              Olá, {profile?.full_name}
             </Text>
             <View
               style={{
@@ -316,7 +318,7 @@ export default function TabOneScreen() {
                     fontSize: 12,
                   }}
                 >
-                  {workout.watchedAt.toLocaleDateString()}
+                  {/* {workout.watchedAt.toLocaleDateString() ?? ''} */}
                 </Text>
               </View>
             </Card>

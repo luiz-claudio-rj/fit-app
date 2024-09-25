@@ -38,18 +38,17 @@ export default function App() {
     ...FontAwesome6.font,
     ...FontAwesome5.font,
   });
-  const { loaded } = useAuth();
   useEffect(() => {
     if (error) throw error;
   }, [error]);
 
   useEffect(() => {
-    if (fontsLoaded && loaded) {
+    if (fontsLoaded) {
       SplashScreen.hideAsync();
     }
-  }, [fontsLoaded, loaded]);
+  }, [fontsLoaded]);
 
-  if (!fontsLoaded && !loaded) {
+  if (!fontsLoaded) {
     return null;
   }
 
@@ -76,14 +75,14 @@ export default function App() {
 const Stack = createNativeStackNavigator();
 
 function RootLayoutNav() {
-  const { isAuthenticated, token } = useAuth();
+  const { isAuthenticated } = useAuth();
   return (
     <Stack.Navigator
       screenOptions={{
         headerShown: false,
       }}
     >
-      {!!token ? (
+      {isAuthenticated ? (
         <Stack.Screen name="tabs" component={TabLayout} />
       ) : (
         <Stack.Screen name="login" component={Welcome} />

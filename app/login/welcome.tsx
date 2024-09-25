@@ -2,8 +2,10 @@ import { useAuth } from "@/atoms/auth";
 import { Text } from "@/components/Themed";
 import Colors from "@/constants/Colors";
 import fonts from "@/constants/fonts";
+import { supabase } from "@/service/subapabse";
 import React, { useState } from "react";
 import {
+  Alert,
   Dimensions,
   Image,
   StyleSheet,
@@ -36,13 +38,50 @@ const Welcome: React.FC = () => {
 
   const { login } = useAuth();
 
+  const loginWithPassword = async () => {
+    const { error } = await login({
+      email,
+      password,
+    });
+    if (error) {
+      console.log("Error Login: ", error.message);
+      Alert.alert("Erro ao logar", error.message);
+      return;
+    }
+  }
+
+  const register = async () => {
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options:{
+        data: {
+          full_name: name
+        }
+      }
+    });
+    if (error) {
+      console.log("Error register: ", error.message);
+      Alert.alert("Erro ao cadastrar", error.message);
+      return;
+    }
+    loginWithPassword();
+  }
+
   const handleLogin = async () => {
+    if (openRegisterModal) {
+      if (password !== confirmPassword) {
+        alert("As senhas não coincidem");
+        return;
+      }
+      setLoading(true);
+      await register();
+      setLoading(false);
+      return;
+    }
     setLoading(true);
-    await sleep(2000);
+    await loginWithPassword();
     setLoading(false);
-    handleCloseModal();
-    clearFields();
-    login("123456");
   };
 
   const handleEnter = () => {

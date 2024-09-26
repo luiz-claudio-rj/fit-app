@@ -9,6 +9,9 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    permissions:
+      contents: write  # Garantir que o token tem permissão de escrita no repositório
+
     steps:
     - name: Check out the repository
       uses: actions/checkout@v3
@@ -59,7 +62,7 @@ jobs:
       with:
         files: android/app/build/outputs/apk/release/app-release.apk
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
 
     - name: Clean up
       run: git clean -fdx

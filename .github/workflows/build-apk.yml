@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
 
     permissions:
-      contents: write  # Garantir que o token tem permissão de escrita no repositório
+      contents: write
 
     steps:
     - name: Check out the repository
@@ -34,13 +34,28 @@ jobs:
       with:
         node-version: '20'
 
+    - name: Cache node modules
+      uses: actions/cache@v3
+      with:
+        path: node_modules
+        key: ${{ runner.os }}-npm-cache-${{ hashFiles('package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-npm-cache-
+
     - name: Install dependencies
       run: npm install
-    
+
     - name: Create .env file
       run: |
-       echo "EXPO_PUBLIC_SUPABASE_URL=${{ secrets.EXPO_PUBLIC_SUPABASE_URL }}" >> .env
-       echo "EXPO_PUBLIC_SUPABASE_ANON_KEY=${{ secrets.EXPO_PUBLIC_SUPABASE_ANON_KEY }}" >> .env
+        echo "EXPO_PUBLIC_SUPABASE_URL=${{ secrets.EXPO_PUBLIC_SUPABASE_URL }}" >> .env
+        echo "EXPO_PUBLIC_SUPABASE_ANON_KEY=${{ secrets.EXPO_PUBLIC_SUPABASE_ANON_KEY }}" >> .env
+
+    - name: Set version in app.json
+      id: version_tag
+      run: |
+        TAG_NAME=v1.0_$(date +%Y%m%d%H%M%S)
+        echo "TAG_NAME=$TAG_NAME" >> $GITHUB_ENV
+        jq '.expo.version = "'"$TAG_NAME"'"' app.json > app.json.tmp && mv app.json.tmp app.json
 
     - name: Run prebuild
       run: |
@@ -56,20 +71,17 @@ jobs:
         ./gradlew assembleRelease
 
     - name: Create Git tag
-      id: create_tag
       run: |
         git config --local user.name "github-actions"
         git config --local user.email "github-actions@github.com"
-        TAG_NAME=v1.0_$(date +%Y%m%d%H%M%S)
-        git tag $TAG_NAME
-        git push origin --tags
-        echo "tag_name=$TAG_NAME" >> $GITHUB_ENV
-      
+        git tag ${{ env.TAG_NAME }}
+        git push origin ${{ env.TAG_NAME }}
+
     - name: Upload APK to GitHub release
       uses: softprops/action-gh-release@v1
       with:
         files: android/app/build/outputs/apk/release/app-release.apk
-        tag_name: ${{ env.tag_name }}
+        tag_name: ${{ env.TAG_NAME }}
       env:
         GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
 

@@ -3,7 +3,7 @@ name: Build APK
 on:
   push:
     branches:
-      - master
+      - main
 
 jobs:
   build:
@@ -16,7 +16,7 @@ jobs:
     - name: Set up JDK 11
       uses: actions/setup-java@v3
       with:
-        distribution: 'temurin'
+        distribution: 'temurin'  # Usando a distribuição de Java Temurin
         java-version: '11'
 
     - name: Set up Android SDK
@@ -34,9 +34,10 @@ jobs:
     - name: Install dependencies
       run: npm install
 
-    - name: Eject project
+    - name: Run prebuild
       run: |
-        npx expo eject --non-interactive
+        export CI=1
+        npx expo prebuild --platform android
 
     - name: Set executable permissions for Gradle
       run: chmod +x android/gradlew
@@ -51,7 +52,7 @@ jobs:
       with:
         files: android/app/build/outputs/apk/release/app-release.apk
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
 
     - name: Clean up
       run: git clean -fdx

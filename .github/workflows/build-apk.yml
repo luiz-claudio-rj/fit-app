@@ -51,18 +51,21 @@ jobs:
         ./gradlew assembleRelease
 
     - name: Create Git tag
+      id: create_tag
       run: |
         git config --local user.name "github-actions"
         git config --local user.email "github-actions@github.com"
-        git tag v1.0.$(date +%s)
+        TAG_NAME=v1.0.$(date +%s)
+        git tag $TAG_NAME
         git push origin --tags
+        echo "tag_name=$TAG_NAME" >> $GITHUB_ENV  # Salva a tag no ambiente
 
     - name: Upload APK to GitHub release
       uses: softprops/action-gh-release@v1
       with:
         files: android/app/build/outputs/apk/release/app-release.apk
       env:
-        GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}  # Use o token correto
 
     - name: Clean up
       run: git clean -fdx

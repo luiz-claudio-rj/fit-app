@@ -17,6 +17,12 @@ import BodyProgressAndUpdate from "./BodyProgressAndUpdate";
 import Profile from "./profile";
 import Workout, { Video } from "./workout";
 import WorkoutList from "./WorkoutList";
+
+export type LoginNavigation = {
+  welcome: undefined;
+  register: undefined;
+}
+
 export type TabsNavigation = {
   index: undefined;
   bodyInfo: undefined;
@@ -24,7 +30,7 @@ export type TabsNavigation = {
   workoutList: undefined;
   four: undefined;
   five: undefined;
-};
+} & LoginNavigation;
 
 export type StackWorkoutNavigation = {
   workouts: undefined;

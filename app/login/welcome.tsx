@@ -1,8 +1,8 @@
 import { useAuth } from "@/atoms/auth";
 import { Text } from "@/components/Themed";
-import Colors from "@/constants/Colors";
+import Colors from "@/constants/Colors"; // Certifique-se de que este arquivo está atualizado com as novas cores
 import fonts from "@/constants/fonts";
-import { supabase } from "@/service/subapabse";
+import { useNavigation } from "@react-navigation/native";
 import React, { useState } from "react";
 import {
   Alert,
@@ -19,24 +19,16 @@ const Logo = require("../../assets/images/logo_white.png");
 
 const WIDTH = Dimensions.get("window").width;
 
-// import { Container } from './styles';
-
-const sleep = (time: number) =>
-  new Promise((resolve) => setTimeout(() => resolve(true), time));
-
 const Welcome: React.FC = () => {
   const [openEnterModal, setOpenEnterModal] = useState(false);
-  const [openRegisterModal, setOpenRegisterModal] = useState(false);
-  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
   const [passwordVisible, setPasswordVisible] = useState(false);
-  const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false);
 
   const { login } = useAuth();
+  const navigation = useNavigation();
 
   const loginWithPassword = async () => {
     const { error } = await login({
@@ -48,37 +40,9 @@ const Welcome: React.FC = () => {
       Alert.alert("Erro ao logar", error.message);
       return;
     }
-  }
-
-  const register = async () => {
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options:{
-        data: {
-          full_name: name
-        }
-      }
-    });
-    if (error) {
-      console.log("Error register: ", error.message);
-      Alert.alert("Erro ao cadastrar", error.message);
-      return;
-    }
-    loginWithPassword();
-  }
+  };
 
   const handleLogin = async () => {
-    if (openRegisterModal) {
-      if (password !== confirmPassword) {
-        alert("As senhas não coincidem");
-        return;
-      }
-      setLoading(true);
-      await register();
-      setLoading(false);
-      return;
-    }
     setLoading(true);
     await loginWithPassword();
     setLoading(false);
@@ -89,17 +53,15 @@ const Welcome: React.FC = () => {
   };
 
   const handleRegister = () => {
-    setOpenRegisterModal(true);
+    navigation.navigate("register");
   };
 
   const handleCloseModal = () => {
     setOpenEnterModal(false);
-    setOpenRegisterModal(false);
     clearFields();
   };
 
   const clearFields = () => {
-    setName("");
     setEmail("");
     setPassword("");
   };
@@ -108,18 +70,14 @@ const Welcome: React.FC = () => {
     <View style={styles.container}>
       <Image
         source={WelcomeImage}
-        style={{ width: WIDTH, position: "absolute", top: 0 }}
+        style={styles.welcomeImage}
         resizeMode="cover"
       />
-      <Image
-        source={Logo}
-        style={{ width: 300, height: 200, marginBottom: 20 }}
-        resizeMode="contain"
-      />
+      <Image source={Logo} style={styles.logo} resizeMode="contain" />
       <Text style={styles.tagline}>
         Transforme seu corpo, alcance seus objetivos com Sampson.
       </Text>
-      <View style={styles.starButtonContainer}>
+      <View style={styles.buttonContainer}>
         <TouchableOpacity
           style={styles.buttonPrimary}
           activeOpacity={0.8}
@@ -137,55 +95,18 @@ const Welcome: React.FC = () => {
       </View>
       <Portal>
         <Modal
-          visible={openEnterModal || openRegisterModal}
+          visible={openEnterModal}
           onDismiss={handleCloseModal}
-          style={{
-            justifyContent: "flex-end",
-            margin: 0,
-          }}
-          contentContainerStyle={{
-            backgroundColor: "white",
-            paddingHorizontal: 20,
-            paddingVertical: 20,
-            borderTopEndRadius: 8,
-            borderTopStartRadius: 8,
-            gap: 10,
-          }}
+          style={styles.modal}
+          contentContainerStyle={styles.modalContent}
         >
-          <Text
-            style={{
-              fontFamily: fonts.Inter_Semibold,
-              fontSize: 22,
-              color: "#000",
-              textAlign: "center",
-            }}
-          >
-            Bem vindo ao Sampson
-          </Text>
-
-          {openRegisterModal && (
-            <TextInput
-              label="Nome"
-              value={name}
-              onChangeText={setName}
-              mode="outlined"
-              style={{
-                backgroundColor: "white",
-                color: "black",
-              }}
-              textColor="black"
-              outlineColor="black"
-            />
-          )}
+          <Text style={styles.modalTitle}>Bem vindo ao Sampson</Text>
           <TextInput
             label="Email"
             value={email}
             onChangeText={setEmail}
             mode="outlined"
-            style={{
-              backgroundColor: "white",
-              color: "black",
-            }}
+            style={styles.input}
             textColor="black"
             outlineColor="black"
             keyboardType="email-address"
@@ -197,10 +118,7 @@ const Welcome: React.FC = () => {
             onChangeText={setPassword}
             secureTextEntry={!passwordVisible}
             mode="outlined"
-            style={{
-              backgroundColor: "white",
-              color: "black",
-            }}
+            style={styles.input}
             textColor="black"
             outlineColor="black"
             autoCapitalize="none"
@@ -211,45 +129,9 @@ const Welcome: React.FC = () => {
               />
             }
           />
-          {openRegisterModal && (
-            <TextInput
-              label="Confirme a senha"
-              value={confirmPassword}
-              onChangeText={setConfirmPassword}
-              secureTextEntry={!confirmPasswordVisible}
-              mode="outlined"
-              style={{
-                backgroundColor: "white",
-                color: "black",
-              }}
-              textColor="black"
-              outlineColor="black"
-              autoCapitalize="none"
-              right={
-                <TextInput.Icon
-                  icon={confirmPasswordVisible ? "eye-off" : "eye"}
-                  onPress={() =>
-                    setConfirmPasswordVisible(!confirmPasswordVisible)
-                  }
-                />
-              }
-            />
-          )}
-          <TouchableOpacity
-            style={{
-              backgroundColor: Colors.primary,
-              padding: 15,
-              borderRadius: 5,
-              alignItems: "center",
-            }}
-            onPress={handleLogin}
-          >
-            <Text style={{ color: "white", fontFamily: fonts.Inter_Semibold }}>
-              {loading
-                ? "Carregando..."
-                : openRegisterModal
-                ? "Cadastrar"
-                : "Entrar"}
+          <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
+            <Text style={styles.loginButtonText}>
+              {loading ? "Carregando..." : "Entrar"}
             </Text>
           </TouchableOpacity>
         </Modal>
@@ -266,10 +148,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingBottom: 40,
   },
-  appName: {
-    fontSize: 36,
+  welcomeImage: {
+    width: WIDTH,
+    position: "absolute",
+    top: 0,
+  },
+  logo: {
+    width: 300,
+    height: 200,
     marginBottom: 20,
-    fontFamily: fonts.Libre_Bold,
   },
   tagline: {
     fontSize: 18,
@@ -277,8 +164,9 @@ const styles = StyleSheet.create({
     marginBottom: 40,
     paddingHorizontal: 10,
     fontFamily: fonts.Inter_Semibold,
+    color: Colors.onSurface, // Use a cor do tema para texto
   },
-  starButtonContainer: {
+  buttonContainer: {
     width: "100%",
     gap: 10,
   },
@@ -290,21 +178,53 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   buttonSecondary: {
-    backgroundColor: Colors.secondary,
+    backgroundColor: Colors.background,
     width: "100%",
     padding: 15,
     borderRadius: 5,
     alignItems: "center",
   },
   textStart: {
-    color: Colors.white,
+    color: Colors.onPrimary, // Texto sobre a cor primária
     fontFamily: fonts.Inter_Semibold,
     fontSize: 16,
   },
   textRegister: {
-    color: Colors.primary,
+    color: Colors.onSurface, // Texto sobre a cor secundária
     fontFamily: fonts.Inter_Semibold,
     fontSize: 16,
+  },
+  modal: {
+    justifyContent: "flex-end",
+    margin: 0,
+  },
+  modalContent: {
+    backgroundColor: "#333",
+    paddingHorizontal: 20,
+    paddingVertical: 20,
+    borderTopEndRadius: 8,
+    borderTopStartRadius: 8,
+    gap: 10,
+  },
+  modalTitle: {
+    fontFamily: fonts.Inter_Semibold,
+    fontSize: 22,
+    color: Colors.onSurface, // Texto sobre superfície
+    textAlign: "center",
+  },
+  input: {
+    // backgroundColor: "white",
+    // color: "black",
+  },
+  loginButton: {
+    backgroundColor: Colors.primary,
+    padding: 15,
+    borderRadius: 5,
+    alignItems: "center",
+  },
+  loginButtonText: {
+    color: "white",
+    fontFamily: fonts.Inter_Semibold,
   },
 });
 

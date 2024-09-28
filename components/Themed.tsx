@@ -14,7 +14,7 @@ export type ViewProps = ThemeProps & DefaultView['props'];
 export function Text(props: TextProps) {
   const { style, lightColor, darkColor, ...otherProps } = props;
 
-  return <DefaultText style={[{ color: Colors.white }, style]} {...otherProps} />;
+  return <DefaultText style={[{ color: `#fff` }, style]} {...otherProps} />;
 }
 
 export function View(props: ViewProps) {

@@ -48,6 +48,52 @@ const calcBodyFat = (bmi: number, birthdate: string, gender: string) => {
   return 1.2 * bmi + 0.23 * age - 5.4;
 };
 
+function calculateBodyMetrics(bodyInfo: bodyInfo, birthdate: string, gender: string) {
+  const heightInMeters = bodyInfo.height / 100;
+  const weight = bodyInfo.weight;
+  const age = new Date().getFullYear() - new Date(birthdate).getFullYear();
+
+
+  // Calcular IMC
+  const bmi = weight / (heightInMeters * heightInMeters);
+
+  // Calcular RCQ (Relação Cintura-Quadril)
+  const waistToHipRatio = bodyInfo.waist / bodyInfo.hip;
+
+  // Calcular IGC (Índice de Gordura Corporal)
+  let bodyFatPercentage;
+  if (gender === 'male') {
+    bodyFatPercentage = 1.20 * bmi + 0.23 * age - 16.2;
+  } else {
+    bodyFatPercentage = 1.20 * bmi + 0.23 * age - 5.4;
+  }
+
+  // Calcular Área de Superfície Corporal (ASC) usando a fórmula de Mosteller
+  const bsa = Math.sqrt((bodyInfo.height * weight) / 3600);
+
+  // Calcular Taxa Metabólica Basal (TMB) usando a fórmula de Harris-Benedict
+  let bmr;
+  if (gender === 'male') {
+    bmr = 88.36 + (13.4 * weight) + (4.8 * bodyInfo.height) - (5.7 * age);
+  } else {
+    bmr = 447.6 + (9.2 * weight) + (3.1 * bodyInfo.height) - (4.3 * age);
+  }
+
+  // Calcular RCAlt (Relação Cintura-Altura)
+  const waistToHeightRatio = bodyInfo.waist / bodyInfo.height;
+
+  return {
+    weight,
+    bmi: parseFloat(bmi.toFixed(2)),
+    waistToHipRatio: parseFloat(waistToHipRatio.toFixed(2)),
+    bodyFatPercentage: parseFloat(bodyFatPercentage.toFixed(2)),
+    bsa: parseFloat(bsa.toFixed(2)),
+    bmr: parseFloat(bmr.toFixed(2)),
+    waistToHeightRatio: parseFloat(waistToHeightRatio.toFixed(2)),
+  };
+}
+
+
 const BodyProgressAndUpdate = () => {
   const { profile } = useAuth();
   const { data, error, refetch } = useQuery({
@@ -93,43 +139,44 @@ const BodyProgressAndUpdate = () => {
 
   const limit = 12;
 
-  // Extraindo dados para os gráficos
-  const weightData =
-    data
-      ?.slice(-limit)
-      .sort(
-        (a, b) =>
-          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-      )
-      .map((data) => ({
-        value: data.weight,
-        label: format(new Date(data.created_at), "MM/yy", { locale: ptBR }),
-      })) ?? [];
-  const bmiData =
-    data
-      ?.sort(
-        (a, b) =>
-          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-      )
-      .map((data) => ({
-        value: calcIMC(data.height, data.weight),
-        label: format(new Date(data.created_at), "MM/yy", { locale: ptBR }),
-      })) ?? [];
-  const bodyFatData =
-    data
-      ?.sort(
-        (a, b) =>
-          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-      )
-      .map((data) => ({
-        value: calcBodyFat(
-          calcIMC(data.height, data.weight),
-          profile!.birthdate,
-          profile!.gender
-        ),
-        label: format(new Date(data.created_at), "MM/yy", { locale: ptBR }),
-      })) ?? [];
+  const bodyRegister = data?.slice(-limit).sort(
+    (a, b) =>
+      new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+  ).map((data) => ({
+    value: calculateBodyMetrics(data, profile.birthdate, profile.gender),
+    label: format(new Date(data.created_at), "MM/yy", { locale: ptBR }),
+  })) ?? [];
 
+  // Extraindo dados para os gráficos
+  const weightData = bodyRegister.map((data) => ({
+    value: data.value.weight,
+    label: data.label,
+  }));
+  const bmiData = bodyRegister.map((data) => ({
+    value: data.value.bmi,
+    label: data.label,
+    }));
+  const bodyFatData = bodyRegister.map((data) => ({
+    value: data.value.bodyFatPercentage,
+    label: data.label,
+    }));
+  const waistToHipData = bodyRegister.map((data) => ({
+    value: data.value.waistToHipRatio,
+    label: data.label,
+    }));
+  const bsaData = bodyRegister.map((data) => ({
+    value: data.value.bsa,
+    label: data.label,
+    }));
+  const bmrData = bodyRegister.map((data) => ({
+    value: data.value.bmr,
+    label: data.label,
+    }));
+  const waistToHeightData = bodyRegister.map((data) => ({
+    value: data.value.waistToHeightRatio,
+    label: data.label,
+  }));
+  
   useEffect(() => {
     if (data) {
       const lastData = data[0];
@@ -178,6 +225,44 @@ const BodyProgressAndUpdate = () => {
             style={styles.chart}
             legend={["Índice de Gordura Corporal (%)"]}
           />
+
+          <Text style={styles.chartTitle}>Relação Cintura-Quadril</Text>
+          <Linechart
+            data={waistToHipData}
+            colors={(opacity = 1) => `rgba(255, 206, 86, ${opacity})`}
+            config={chartConfig}
+            style={styles.chart}
+            legend={["Relação Cintura-Quadril"]}
+          />
+
+          <Text style={styles.chartTitle}>Área de Superfície Corporal</Text>
+          <Linechart
+            data={bsaData}
+            colors={(opacity = 1) => `rgba(54, 162, 235, ${opacity})`}
+            config={chartConfig}
+            style={styles.chart}
+            legend={["Área de Superfície Corporal"]}
+          />
+
+          <Text style={styles.chartTitle}>Taxa Metabólica Basal</Text>
+          <Linechart
+            data={bmrData}
+            colors={(opacity = 1) => `rgba(153, 102, 255, ${opacity})`}
+            config={chartConfig}
+            style={styles.chart}
+            legend={["Taxa Metabólica Basal"]}
+          />
+
+          <Text style={styles.chartTitle}>Relação Cintura-Altura</Text>
+          <Linechart
+            data={waistToHeightData}
+            colors={(opacity = 1) => `rgba(255, 159, 64, ${opacity})`}
+            config={chartConfig}
+            style={styles.chart}
+            legend={["Relação Cintura-Altura"]}
+          />
+
+
         </>
       )}
 
@@ -290,18 +375,16 @@ const BodyProgressAndUpdate = () => {
 };
 
 const chartConfig: AbstractChartConfig = {
-  backgroundColor: "transparent",
   backgroundGradientFrom: "transparent",
   backgroundGradientTo: "transparent",
   decimalPlaces: 1,
   color: (opacity = 1) => `rgba(200, 200, 200, ${opacity})`,
   labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
-  style: {
-    borderRadius: 16,
-  },
+  
+
   propsForDots: {
-    r: "6",
-    strokeWidth: "2",
+    r: "5",
+    strokeWidth: "1",
     stroke: "#fff",
   },
 };

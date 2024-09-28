@@ -4,7 +4,7 @@ import fonts from "@/constants/fonts";
 import { supabase } from "@/service/subapabse";
 import { useNavigation } from "@react-navigation/native";
 import { useQuery } from "@tanstack/react-query";
-import React from "react";
+import React, { useState } from "react";
 import {
   Dimensions,
   Image,
@@ -14,6 +14,7 @@ import {
 } from "react-native";
 import { FlatList } from "react-native-gesture-handler";
 import { useNavigationProps } from "./_layout";
+import { TextInput } from "react-native-paper";
 
 export interface Video {
   created_at: string;
@@ -24,22 +25,44 @@ export interface Video {
   url: string;
 }
 
-export const getVideos = async (): Promise<Video[]> => {
-  const { data } = await supabase.from("videos").select("*");
+export const getVideos = async (filterString: string): Promise<Video[]> => {
+  const { data } = await supabase
+    .from("videos")
+    .select("*")
+    .filter("name", "ilike", `%${filterString}%`)
+    .order("name", { ascending: true });
 
   return data || [];
 };
 
 const WorkoutList = () => {
-  const { data } = useQuery({ queryKey: ["videos"], queryFn: getVideos });
+  const [filterName, setFilterName] = useState("");
+  const { data, status } = useQuery({
+    queryKey: ["videos", filterName],
+    queryFn: () => getVideos(filterName),
+  });
 
   const navigation = useNavigation<useNavigationProps>();
 
   return (
     <View style={styles.container}>
+      <Text style={styles.subHeader}>Exercícios</Text>
+      <TextInput
+        label="Buscar"
+        value={filterName}
+        onChangeText={(text) => setFilterName(text)}
+        style={{ marginBottom: 10 }}
+        mode="outlined"
+      />
       <FlatList
         data={data}
         keyExtractor={(item) => item.id.toString()}
+        ListEmptyComponent={() => (
+          <Text style={{ color: Colors.white }}>
+            {status !== "error" ? "Carregando..." :
+            status === "error" ? "Erro ao carregar" : "Nenhum exercício encontrado"}
+          </Text>
+        )}
         renderItem={({ item }) => (
           <TouchableOpacity
             style={styles.videoItem}
@@ -104,6 +127,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontFamily: fonts.Inter_Bold,
     marginBottom: 10,
+    marginTop: 10,
   },
   videoItem: {
     flexDirection: "row",

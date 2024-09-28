@@ -77,15 +77,19 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
         body: bodyErro ? null : body,
       };
     } catch (error) {
+
       console.log("Error getProfile: ", error);
+      throw error;
     }
   };
+
+  console.log("session", session);
   const {
     data: profileData,
     error: profileError,
     refetch,
   } = useQuery({
-    queryKey: ["profile", session?.user?.id],
+    queryKey: ["profile", session?.user.id],
     queryFn: () => getProfile(),
     enabled: !!session?.user.id,
   });

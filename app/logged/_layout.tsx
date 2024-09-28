@@ -9,7 +9,6 @@ import {
   createStackNavigator,
   StackNavigationProp,
 } from "@react-navigation/stack";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import React from "react";
 import { Pressable } from "react-native";
 import TabOneScreen from ".";
@@ -21,7 +20,7 @@ import WorkoutList from "./WorkoutList";
 export type LoginNavigation = {
   welcome: undefined;
   register: undefined;
-}
+};
 
 export type TabsNavigation = {
   index: undefined;
@@ -46,21 +45,17 @@ const Stack = createStackNavigator<StackWorkoutNavigation>();
 
 const Tabs = createBottomTabNavigator<TabsNavigation>();
 
-const queryClient = new QueryClient();
-
 export default function TabLayout() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <Stack.Navigator
-        screenOptions={{
-          headerShown: false,
-        }}
-      >
-        <Stack.Screen name="Tabs" component={TabsNavigation} />
-        <Stack.Screen name="workouts" component={WorkoutList} />
-        <Stack.Screen name="workout" component={Workout} />
-      </Stack.Navigator>
-    </QueryClientProvider>
+    <Stack.Navigator
+      screenOptions={{
+        headerShown: false,
+      }}
+    >
+      <Stack.Screen name="Tabs" component={TabsNavigation} />
+      <Stack.Screen name="workouts" component={WorkoutList} />
+      <Stack.Screen name="workout" component={Workout} />
+    </Stack.Navigator>
   );
 }
 
@@ -117,7 +112,7 @@ const customTabbar = ({
         flexDirection: "row",
         justifyContent: "space-evenly",
         alignItems: "center",
-        backgroundColor: Colors.darkGray,
+        backgroundColor: Colors.surface,
         paddingVertical: 10,
         borderRadius: 10,
       }}

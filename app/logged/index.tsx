@@ -2,12 +2,14 @@ import { Dimensions, Image, Pressable, StyleSheet, View } from "react-native";
 
 import headerImage from "@/assets/images/header.png";
 import profilePicture from "@/assets/images/profile.png";
-import { useWorkoutsHistory } from "@/atoms/workoutsHistory";
+import { useAuth } from "@/atoms/auth";
 import { Text } from "@/components/Themed";
 import Colors from "@/constants/Colors";
 import fonts from "@/constants/fonts";
+import fetchLastWatchedVideos from "@/service/getLastsWatchedVideos";
 import { FontAwesome, FontAwesome6 } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
+import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale/pt-BR";
 import { LinearGradient } from "expo-linear-gradient";
@@ -15,18 +17,22 @@ import { ScrollView } from "react-native-gesture-handler";
 import { Card } from "react-native-paper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useNavigationProps } from "./_layout";
-import { useAuth } from "@/atoms/auth";
 
 const width = Dimensions.get("window").width;
 
 export default function TabOneScreen() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<useNavigationProps>();
+  const { profile } = useAuth();
+  const {
+    data: lastsWorkouts,
+    error,
+    isLoading,
+  } = useQuery({
+    queryKey: ["lastWatchedVideos", profile!.id],
+    queryFn: () => fetchLastWatchedVideos(profile!.id),
+  });
 
-  const lastsWorkouts = useWorkoutsHistory(
-    (state) => state.lastWorkoutsVideosWatched
-  );
-  const {profile} = useAuth();
   return (
     <ScrollView contentContainerStyle={[styles.container]}>
       <Image
@@ -149,7 +155,7 @@ export default function TabOneScreen() {
                 fontFamily: fonts.Inter_Bold,
               }}
             >
-              {format(new Date(), "PP", {
+              {format(new Date(profile!.body.created_at), "PP", {
                 locale: ptBR,
               })}
             </Text>
@@ -197,7 +203,7 @@ export default function TabOneScreen() {
                   fontSize: 16,
                 }}
               >
-                65kg
+                {profile?.body.weight}kg
               </Text>
             </View>
             <View>
@@ -215,7 +221,7 @@ export default function TabOneScreen() {
                   fontSize: 16,
                 }}
               >
-                1.65m
+                {(profile!.body.height / 100).toLocaleString()}m
               </Text>
             </View>
             <View>
@@ -233,7 +239,9 @@ export default function TabOneScreen() {
                   fontSize: 16,
                 }}
               >
-                24.5
+                {(
+                  profile!.body.weight / Math.pow(profile!.body.height / 100, 2)
+                ).toFixed(2)}
               </Text>
             </View>
           </View>
@@ -258,7 +266,7 @@ export default function TabOneScreen() {
             marginBottom: 20,
           }}
         >
-          {lastsWorkouts.map((workout, index) => (
+          {lastsWorkouts?.map((workout, index) => (
             <Card
               key={index}
               style={{
@@ -272,7 +280,11 @@ export default function TabOneScreen() {
                 backgroundColor: Colors.secondary,
               }}
               onPress={() => {
-                navigation.navigate("workout", { video: workout.video });
+                navigation.navigate("workout", {
+                  video: {
+                    id: workout.video_id,
+                  },
+                });
               }}
             >
               <LinearGradient
@@ -285,7 +297,7 @@ export default function TabOneScreen() {
               />
               <Image
                 source={{
-                  uri: workout.video.image,
+                  uri: workout.videos.image,
                 }}
                 style={{
                   zIndex: -1,
@@ -309,16 +321,7 @@ export default function TabOneScreen() {
                     fontSize: 16,
                   }}
                 >
-                  {workout.video.name}
-                </Text>
-                <Text
-                  style={{
-                    color: "white",
-                    fontFamily: fonts.Inter,
-                    fontSize: 12,
-                  }}
-                >
-                  {/* {workout.watchedAt.toLocaleDateString() ?? ''} */}
+                  {workout.videos.name}
                 </Text>
               </View>
             </Card>

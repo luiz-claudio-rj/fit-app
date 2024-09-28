@@ -1,17 +1,12 @@
 import { useAuth } from "@/atoms/auth";
+import { Text } from "@/components/Themed";
 import fonts from "@/constants/fonts";
 import { supabase } from "@/service/subapabse";
 import { useNavigation } from "@react-navigation/native";
 import React, { useState } from "react";
 import { Alert, Image, ImageBackground, ScrollView, View } from "react-native";
 import TextInputMask from "react-native-mask-input";
-import {
-  Button,
-  Text as PaperText,
-  ProgressBar,
-  TextInput,
-  useTheme,
-} from "react-native-paper";
+import { Button, ProgressBar, TextInput, useTheme } from "react-native-paper";
 import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
 const Logo = require("../../assets/images/logo_white.png");
 const Background = require("../../assets/images/background_signup.png");
@@ -19,6 +14,7 @@ const Background = require("../../assets/images/background_signup.png");
 interface FormData {
   email: string;
   password: string;
+  confirm_password: string;
   name: string;
   birthdate: string;
   height: string;
@@ -26,14 +22,8 @@ interface FormData {
   waist: string;
   hip: string;
   chest: string;
+  gender: "male" | "female";
 }
-
-const Text = (props: any) => (
-  <PaperText
-    {...props}
-    style={[{ fontSize: 16, fontFamily: fonts.Inter }, { ...props.style }]}
-  />
-);
 
 const isEmailValid = (email: string) => {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -63,10 +53,12 @@ const SignupScreen = () => {
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [seePassword, setSeePassword] = useState(false);
+  const [seeConfirmPassword, setSeeConfirmPassword] = useState(false);
   const [isCoach, setIsCoach] = useState(false);
   const [formData, setFormData] = useState<FormData>({
     email: "",
     password: "",
+    confirm_password: "",
     name: "",
     birthdate: "",
     height: "",
@@ -74,6 +66,7 @@ const SignupScreen = () => {
     waist: "",
     hip: "",
     chest: "",
+    gender: "male",
   });
 
   const { login } = useAuth();
@@ -85,6 +78,8 @@ const SignupScreen = () => {
         !!formData.email &&
         isEmailValid(formData.email) &&
         !!formData.password &&
+        !!formData.confirm_password &&
+        formData.password === formData.confirm_password &&
         !!formData.name &&
         formData.name.length >= 3 &&
         validateBirthdate(formData.birthdate) &&
@@ -157,7 +152,7 @@ const SignupScreen = () => {
         .toISOString()
         .split("T")[0],
       height: parseInt(formData.height),
-      weight: parseInt(formData.weight),
+      weight: parseFloat(formData.weight.replace(",", ".")),
       waist: parseInt(formData.waist),
       hip: parseInt(formData.hip),
       chest: parseInt(formData.chest),
@@ -181,6 +176,7 @@ const SignupScreen = () => {
         isActive: true,
         email: dataToSend.email,
         birthdate: dataToSend.birthdate,
+        gender: formData.gender,
       });
 
       if (errorProfiles) throw new Error(errorProfiles.message);
@@ -244,7 +240,7 @@ const SignupScreen = () => {
         />
 
         {step === 1 && (
-          <Animated.View entering={FadeIn} exiting={FadeOut}>
+          <Animated.View entering={FadeIn.duration(500)} exiting={FadeOut}>
             <TextInput
               label={<Text>E-mail</Text>}
               value={formData.email}
@@ -270,6 +266,27 @@ const SignupScreen = () => {
                 />
               }
               error={!!formData.password && formData.password.length < 6}
+            />
+            <TextInput
+              label={<Text>Confirme a senha</Text>}
+              value={formData.confirm_password}
+              onChangeText={(value) =>
+                handleInputChange("confirm_password", value)
+              }
+              secureTextEntry={!seePassword}
+              style={{ marginBottom: 10 }}
+              mode="outlined"
+              right={
+                <TextInput.Icon
+                  icon={seeConfirmPassword ? "eye" : "eye-off"}
+                  onPress={() => setSeeConfirmPassword(!seeConfirmPassword)}
+                />
+              }
+              error={
+                !!formData.confirm_password &&
+                formData.confirm_password.length < 6 &&
+                formData.password !== formData.confirm_password
+              }
             />
             <TextInput
               label={<Text>Nome</Text>}
@@ -310,7 +327,14 @@ const SignupScreen = () => {
               style={{ marginBottom: 10 }}
               onPress={() => setIsCoach(!isCoach)}
             >
-              <Text>Quero ser um coach</Text>
+              <Text
+                style={{
+                  fontFamily: fonts.Inter_Bold,
+                  color: isCoach ? colors.surface : colors.primary,
+                }}
+              >
+                Quero ser um coach
+              </Text>
             </Button>
           </Animated.View>
         )}
@@ -336,18 +360,22 @@ const SignupScreen = () => {
             <TextInput
               label={<Text>Peso (kg)</Text>}
               value={formData.weight}
-              onChangeText={(value) => handleInputChange("weight", value)}
+              onChangeText={(value) =>
+                handleInputChange(
+                  "weight",
+                  value
+                    .replace(/[^0-9,]/g, "") // Remove non-digits and commas
+                    .replace(/,(?=.*,)/g, "") // Remove extra commas
+                    .replace(/,(\d{3})\d+/, "$1")
+                )
+              }
               keyboardType="numeric"
               style={{ marginBottom: 10 }}
               mode="outlined"
-              render={(props) => (
-                <TextInputMask
-                  {...props}
-                  mask={[/\d/, /\d/, /\d/]}
-                  keyboardType="numeric"
-                />
-              )}
-              error={!!formData.weight && formData.weight.length < 2}
+              error={
+                !!formData.weight &&
+                parseFloat(formData.weight.replace(",", "")) < 30
+              }
             />
             <TextInput
               label={<Text>Cintura (cm)</Text>}
@@ -397,6 +425,34 @@ const SignupScreen = () => {
               )}
               error={!!formData.chest && formData.chest.length < 2}
             />
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                marginBottom: 10,
+              }}
+            >
+              <Button
+                mode={formData.gender === "male" ? "contained" : "outlined"}
+                onPress={() => setStep(step - 1)}
+                style={{
+                  flex: 1,
+                  marginRight: 5,
+                }}
+              >
+                Homem
+              </Button>
+              <Button
+                mode={formData.gender === "female" ? "contained" : "outlined"}
+                onPress={() => setStep(step + 1)}
+                style={{
+                  flex: 1,
+                  marginRight: 5,
+                }}
+              >
+                Mulher
+              </Button>
+            </View>
           </Animated.View>
         )}
 
@@ -414,7 +470,12 @@ const SignupScreen = () => {
               Próximo
             </Button>
           ) : (
-            <Button mode="contained" onPress={handleSubmit}>
+            <Button
+              mode="contained"
+              onPress={handleSubmit}
+              disabled={!canNextPage() || loading}
+              loading={loading}
+            >
               Enviar
             </Button>
           )}

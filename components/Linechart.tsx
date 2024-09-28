@@ -44,7 +44,7 @@ export default function Linechart({
           ],
           legend,
         }}
-        width={screenWidth * minValue(1, data.length / 4)}
+        width={screenWidth * minValue(1, data.length / 4) - 50}
         height={220}
         chartConfig={config}
         style={style}

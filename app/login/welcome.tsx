@@ -107,7 +107,6 @@ const Welcome: React.FC = () => {
             onChangeText={setEmail}
             mode="outlined"
             style={styles.input}
-            textColor="black"
             outlineColor="black"
             keyboardType="email-address"
             autoCapitalize="none"
@@ -119,7 +118,6 @@ const Welcome: React.FC = () => {
             secureTextEntry={!passwordVisible}
             mode="outlined"
             style={styles.input}
-            textColor="black"
             outlineColor="black"
             autoCapitalize="none"
             right={
@@ -171,7 +169,7 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   buttonPrimary: {
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors.secondary,
     width: WIDTH - 40,
     padding: 15,
     borderRadius: 5,
@@ -217,13 +215,13 @@ const styles = StyleSheet.create({
     // color: "black",
   },
   loginButton: {
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors.secondary,
     padding: 15,
     borderRadius: 5,
     alignItems: "center",
   },
   loginButtonText: {
-    color: "white",
+    color: Colors.onSecondary,
     fontFamily: fonts.Inter_Semibold,
   },
 });

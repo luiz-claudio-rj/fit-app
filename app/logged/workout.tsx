@@ -1,8 +1,9 @@
-import { useWorkoutsHistory } from "@/atoms/workoutsHistory";
+import { useAuth } from "@/atoms/auth";
 import { Text } from "@/components/Themed";
 import VideoPlayer from "@/components/VideoPlayer";
 import Colors from "@/constants/Colors";
 import fonts from "@/constants/fonts";
+import { supabase } from "@/service/subapabse";
 import { useNavigation } from "@react-navigation/native";
 import { useQuery } from "@tanstack/react-query";
 import React, { useEffect } from "react";
@@ -17,14 +18,10 @@ import {
 } from "react-native";
 import { FlatList } from "react-native-gesture-handler";
 import { useNavigationProps } from "./_layout";
+import { getVideos } from "./WorkoutList";
 
 export interface Video {
-  created_at: string;
-  description: string;
   id: number;
-  image: string;
-  name: string;
-  url: string;
 }
 interface Props {
   route: {
@@ -33,35 +30,77 @@ interface Props {
     };
   };
 }
+
+interface VideoSupabase {
+  id: number;
+  name: string;
+  description: string;
+  url: string;
+  image: string;
+}
+
+const getVideo = async (id: number): Promise<VideoSupabase> => {
+  const { data, error } = await supabase
+    .from("videos")
+    .select("*") // Seleciona todos os campos
+    .eq("id", id)
+    .single();
+
+  if (error) throw new Error(error.message);
+  return data;
+};
+
 const Workout = ({ route }: Props) => {
-  const { data: videos } = useQuery<Video[]>({ queryKey: ["videos"] });
-  const setVideoHistory = useWorkoutsHistory(
-    (state) => state.addLastWorkoutVideo
-  );
   const navigation = useNavigation<useNavigationProps>();
+  const { data: video, error } = useQuery({
+    queryKey: ["video", route.params.video.id],
+    queryFn: () => getVideo(route.params.video.id),
+    refetchInterval: 10000,
+    refetchOnWindowFocus: false,
+  });
+  const { data: videos } = useQuery({
+    queryKey: ["videos"],
+    queryFn: getVideos,
+  });
+
+  if (error) {
+    navigation.goBack();
+  }
+
+  const { profile } = useAuth();
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setVideoHistory(route.params.video);
-      console.log("video watched");
+    if (!video) return;
+    const timer = setTimeout(async () => {
+      const { data, error } = await supabase.from("log_video_watch").upsert(
+        {
+          user_id: profile?.id,
+          video_id: route.params.video.id,
+          updated_at: new Date().toISOString(),
+        },
+        {
+          onConflict: "user_id, video_id",
+        }
+      );
+      if (error) console.log("Error saving video history", error);
     }, 3000);
 
     return () => clearTimeout(timer);
-  }, [route.params.video]);
+  }, [route.params.video, video]);
+
+  if (!video || !videos) return null;
 
   return (
     <View style={styles.container}>
       <View style={styles.videoContainer}>
-        <VideoPlayer video={route.params.video.url} />
+        <VideoPlayer video={video?.url} />
 
-        <Text style={styles.videoTitle}>{route.params.video.name}</Text>
+        <Text style={styles.videoTitle}>{video?.name}</Text>
         <ScrollView
           style={{ maxHeight: 200 }}
           contentContainerStyle={{ flexGrow: 1 }}
         >
-          <Text style={styles.videoDescription}>
-            {route.params.video.description}
-          </Text>
+          <Text style={styles.videoDescription}>{video?.description}</Text>
         </ScrollView>
       </View>
       <Text style={styles.subHeader}>Outros vídeos</Text>
